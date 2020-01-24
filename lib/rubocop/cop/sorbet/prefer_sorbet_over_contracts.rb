@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "sorbet_from_contract_service.rb"
+require_relative "../../sorbet_from_contract_service.rb"
 module RuboCop
   module Cop
     module Sorbet
@@ -34,7 +34,7 @@ module RuboCop
           # are the return types. I guess this is to allow the => syntax?
           args = arg0 << arg1
 
-          new_source = SorbetFromContractService.source(node, args, ret)
+          new_source = ::Sorbet::SorbetFromContractService.source(node, args, ret)
           return nil if new_source.nil?
 
           lambda do |corrector|

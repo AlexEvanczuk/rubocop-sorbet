@@ -4,8 +4,8 @@ require "spec_helper"
 
 require_relative "../../../lib/rubocop/cop/sorbet/prefer_sorbet_over_contracts"
 
-RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
-  subject(:cop) { RuboCop::Cop::Flexport::PreferSorbetOverContracts.new }
+RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts, :config) do
+  subject(:cop) { RuboCop::Cop::Sorbet::PreferSorbetOverContracts.new }
 
   context "Fixes Contracts" do
     describe "Auto-correct works for constants" do
@@ -66,7 +66,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -95,7 +95,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -124,7 +124,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -151,7 +151,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -180,7 +180,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -209,7 +209,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -238,7 +238,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -267,7 +267,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -296,7 +296,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -325,7 +325,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -354,7 +354,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -383,7 +383,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -412,7 +412,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -440,7 +440,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -477,7 +477,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -506,7 +506,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -545,7 +545,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, source)
+        new_source = autocorrect_source(source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -574,7 +574,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -610,7 +610,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -639,7 +639,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -668,7 +668,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -703,7 +703,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -732,7 +732,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -761,7 +761,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(cop, src)
+        new_source = autocorrect_source(src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -791,7 +791,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
         end
 
         it "autocorrects the offense" do
-          new_source = autocorrect_source(cop, src)
+          new_source = autocorrect_source(src)
           expect(new_source).to(eq(fixed_source))
         end
       end
@@ -820,7 +820,7 @@ RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
         end
 
         it "autocorrects the offense" do
-          new_source = autocorrect_source(cop, src)
+          new_source = autocorrect_source(src)
           expect(new_source).to(eq(fixed_source))
         end
       end
