@@ -1,16 +1,18 @@
+# frozen_string_literal: true
+
 require "rubocop/sorbet_from_contract_service.rb"
 module RuboCop
   module Cop
     module Sorbet
       class PreferSorbetOverContracts < Cop
-        MSG = "Instead of Contracts use Sorbet signatures.".freeze
+        MSG = "Instead of Contracts use Sorbet signatures."
 
         def_node_matcher :contract_statement, <<-PATTERN
           (send _ :Contract ...)
         PATTERN
 
         def on_send(node)
-          contract_statement(node) do |statement|
+          contract_statement(node) do |_statement|
             add_offense(node, message: MSG)
           end
         end
@@ -20,7 +22,7 @@ module RuboCop
 
         def autocorrect(node)
           if CONTRACT_PATTERN.match(node)
-            return convert_contract_multi_args(node)
+            convert_contract_multi_args(node)
           end
         end
 
@@ -58,7 +60,7 @@ module RuboCop
         def previous_line(parent)
           if parent.sibling_index > 1
             previous = parent.parent.children[parent.sibling_index - 1]
-            if previous && previous.source_range
+            if previous&.source_range
               return previous
             end
           end
