@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rubocop/sorbet_from_contract_service.rb"
+require_relative "sorbet_from_contract_service.rb"
 module RuboCop
   module Cop
     module Sorbet
@@ -12,8 +12,8 @@ module RuboCop
         PATTERN
 
         def on_send(node)
-          contract_statement(node) do |_statement|
-            add_offense(node, message: MSG)
+          contract_statement(node) do |statement|
+            add_offense(node, message: format(MSG, statement: statement))
           end
         end
 
@@ -34,7 +34,7 @@ module RuboCop
           # are the return types. I guess this is to allow the => syntax?
           args = arg0 << arg1
 
-          new_source = ::Sorbet::SorbetFromContractService.source(node, args, ret)
+          new_source = SorbetFromContractService.source(node, args, ret)
           return nil if new_source.nil?
 
           lambda do |corrector|
