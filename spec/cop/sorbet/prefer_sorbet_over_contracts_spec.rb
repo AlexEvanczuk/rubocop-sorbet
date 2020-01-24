@@ -4,8 +4,8 @@ require "spec_helper"
 
 require_relative "../../../lib/rubocop/cop/sorbet/prefer_sorbet_over_contracts"
 
-RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
-  subject(:cop) { RuboCop::Cop::Sorbet::PreferSorbetOverContracts.new }
+RSpec.describe(RuboCop::Cop::Flexport::PreferSorbetOverContracts) do
+  subject(:cop) { RuboCop::Cop::Flexport::PreferSorbetOverContracts.new }
 
   context "Fixes Contracts" do
     describe "Auto-correct works for constants" do
@@ -66,7 +66,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -95,7 +95,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -124,7 +124,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -151,7 +151,36 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
+        expect(new_source).to(eq(fixed_source))
+      end
+    end
+
+    describe "Auto-corrects self" do
+      let(:source) do
+        <<~RUBY
+          class Example
+            Contract String => self
+            def self.cool_thing(str)
+              self
+            end
+          end
+        RUBY
+      end
+      let(:fixed_source) do
+        <<~RUBY
+          class Example
+            extend T::Sig
+            sig { params(str: String).returns(T.self_type) }
+            def self.cool_thing(str)
+              self
+            end
+          end
+        RUBY
+      end
+
+      it "autocorrects the offense" do
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -180,7 +209,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -209,7 +238,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -238,7 +267,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -267,7 +296,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -296,7 +325,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -325,7 +354,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -334,7 +363,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       let(:src) do
         <<~RUBY
           class Example
-            Contract KeywordArgs[pats: Maybe[Tom::Brady], sox: Maybe[Big::Papi]] => ArrayOf[Gronk]
+            Contract Contracts::KeywordArgs[pats: Maybe[Tom::Brady], sox: Maybe[Big::Papi]] => ArrayOf[Gronk]
             def self.cool_thing(pats: nil, sox: nil)
               return ["cool", "will"]
             end
@@ -354,7 +383,36 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
+        expect(new_source).to(eq(fixed_source))
+      end
+    end
+
+    describe "Fixes tuple" do
+      let(:src) do
+        <<~RUBY
+          class Example
+            Contract [Maybe[Tom::Brady], Maybe[Big::Papi]] => ArrayOf[Gronk]
+            def self.cool_thing(args)
+              return ["cool", "will"]
+            end
+          end
+        RUBY
+      end
+      let(:fixed_source) do
+        <<~RUBY
+          class Example
+            extend T::Sig
+            sig { params(args: [T.nilable(Tom::Brady), T.nilable(Big::Papi)]).returns(T::Array[Gronk]) }
+            def self.cool_thing(args)
+              return ["cool", "will"]
+            end
+          end
+        RUBY
+      end
+
+      it "autocorrects the offense" do
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -382,7 +440,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -419,7 +477,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -439,7 +497,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
         <<~RUBY
           class FullPathExample
             extend T::Sig
-            sig { params(key: String, hash: T.nilable(T::Hash)).returns(T::Boolean) }
+            sig { params(key: String, hash: T.nilable(T::Hash[T.untyped, T.untyped])).returns(T::Boolean) }
             def self.cool_thing(key = "cool", hash = nil)
               return true
             end
@@ -448,7 +506,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -461,7 +519,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
               include Contracts::Core
               include Contracts::Builtin
 
-              Contract Integer => AirProcurement::AllotmentEntity
+              Contract Integer => ::AirProcurement::AllotmentEntity
               def self.number_is_even(num)
                 return false
               end
@@ -487,7 +545,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(source)
+        new_source = autocorrect_source(cop, source)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -516,7 +574,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -552,7 +610,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -581,7 +639,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -610,7 +668,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -636,7 +694,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
         <<~RUBY
           class FullPathExample
             extend T::Sig
-            sig { params(arr: T::Array[{place_id: T.any(Num, String), tags_list: T::Array[String]}], num: String).returns(T.nilable(Num)) }
+            sig { params(arr: T::Array[{place_id: T.any(Numeric, String), tags_list: T::Array[String]}], num: String).returns(T.nilable(Numeric)) }
             def with_frontend_context(arr, num)
               return 1
             end
@@ -645,7 +703,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -674,7 +732,7 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
       end
     end
@@ -703,8 +761,68 @@ RSpec.describe(RuboCop::Cop::Sorbet::PreferSorbetOverContracts) do
       end
 
       it "autocorrects the offense" do
-        new_source = autocorrect_source(src)
+        new_source = autocorrect_source(cop, src)
         expect(new_source).to(eq(fixed_source))
+      end
+    end
+
+    context "when the contract has incorrect arity" do
+      describe "for a zero argument function" do
+        let(:src) do
+          <<~RUBY
+            class ZeroArgFunctionWithIncorrectButNotFailingContract
+              Contract Hash => String
+              def hello
+                return "Hello World"
+              end
+            end
+          RUBY
+        end
+        let(:fixed_source) do
+          <<~RUBY
+            class ZeroArgFunctionWithIncorrectButNotFailingContract
+              extend T::Sig
+              sig { returns(String) }
+              def hello
+                return "Hello World"
+              end
+            end
+          RUBY
+        end
+
+        it "autocorrects the offense" do
+          new_source = autocorrect_source(cop, src)
+          expect(new_source).to(eq(fixed_source))
+        end
+      end
+
+      describe "for a function with arguments" do
+        let(:src) do
+          <<~RUBY
+            class SeriouslyWhyDoesThisContractNotFail
+              Contract Integer, Integer => Integer
+              def plusOne(a)
+                return a+1
+              end
+            end
+          RUBY
+        end
+        let(:fixed_source) do
+          <<~RUBY
+            class SeriouslyWhyDoesThisContractNotFail
+              extend T::Sig
+              sig { params(a: Integer).returns(Integer) }
+              def plusOne(a)
+                return a+1
+              end
+            end
+          RUBY
+        end
+
+        it "autocorrects the offense" do
+          new_source = autocorrect_source(cop, src)
+          expect(new_source).to(eq(fixed_source))
+        end
       end
     end
   end
