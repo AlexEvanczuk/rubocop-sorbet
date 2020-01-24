@@ -2,25 +2,26 @@ module Sorbet
   class SorbetFromContractService
     class AutoCorrectError < StandardError; end
     CONTRACT_PATTERN = RuboCop::NodePattern.new("$(send _ :Contract $... (:hash (:pair $_ $_)))")
-
+  
     EXTEND_T_SIG_PATTERN = RuboCop::NodePattern.new("(send _ :extend (const (const _ :T) :Sig))")
-
-    INSTANCE_ARG_MATCHER = RuboCop::NodePattern.new("(def _ (:args $...) ...)")
-    CONST_PATTERN = RuboCop::NodePattern.new("(const nil? $_)")
-    TWO_CONST_PATTERN = RuboCop::NodePattern.new("(const (const nil? $_) $_)")
-    THREE_CONST_PATTERN = RuboCop::NodePattern.new("(const (const (const nil? $_) $_) $_)")
-    FOUR_CONST_PATTERN = RuboCop::NodePattern.new("(const (const (const (const nil? $_) $_) $_) $_)")
+  
+    CONST_PATTERN = RuboCop::NodePattern.new("(const {nil? (cbase)} $_)")
+    TWO_CONST_PATTERN = RuboCop::NodePattern.new("(const (const {nil? (cbase)} $_) $_)")
+    THREE_CONST_PATTERN = RuboCop::NodePattern.new("(const (const (const {nil? (cbase)} $_) $_) $_)")
+    FOUR_CONST_PATTERN = RuboCop::NodePattern.new("(const (const (const (const {nil? (cbase)} $_) $_) $_) $_)")
     SEND_PATTERN = RuboCop::NodePattern.new("(send $_ _ $...)")
     NIL_PATTERN = RuboCop::NodePattern.new("nil")
+    SELF_PATTERN = RuboCop::NodePattern.new("self")
     HASH_PATTERN = RuboCop::NodePattern.new("(hash $...)")
     PAIR_MATCHER = RuboCop::NodePattern.new("(pair ({sym str} $_) $_)")
-    CONST_PAIR_MATCHER = RuboCop::NodePattern.new("(hash (pair (const nil? $_) (const nil? $_)))")
+    CONST_PAIR_MATCHER = RuboCop::NodePattern.new("(hash (pair (const {nil? (cbase)} $_) (const {nil? (cbase)} $_)))")
     CONTRACT_ARGS_PATTERN = RuboCop::NodePattern.new("({arg optarg blockarg kwoptarg kwarg} $_ ...)")
-
+    TUPLE_PATTERN = RuboCop::NodePattern.new("(array $...)")
+  
     ARG_NAMES_MATCHER = RuboCop::NodePattern.new("(defs _ _ (:args $...) ...)")
     INSTANCE_ARG_MATCHER = RuboCop::NodePattern.new("(def _ (:args $...) ...)")
     PRIVATE_CLASS_ARG_MATCHER = RuboCop::NodePattern.new("(send _ :private_class_method (defs _ _ (:args $...) ...))")
-
+  
     def self.source(node, args, ret)
       arg_names = arg_names(node)
       arg_types = args.map { |arg| convert(arg) }.flatten
@@ -28,11 +29,12 @@ module Sorbet
       return_types = convert(ret)
       return format_source(arg_types, arg_names, return_types)
     rescue AutoCorrectError => e
+      puts e.message
       return nil
     end
-
+  
     def self.format_source(arg_types, arg_names, return_types)
-      if arg_types.length == 1 && arg_types[0] == "None"
+      if arg_names.length == 0
         return format("sig { returns(%s) }", return_types)
       else
         params = arg_names.zip(arg_types).map do |arg, arg_type|
@@ -46,7 +48,7 @@ module Sorbet
         end
       end
     end
-
+  
     def self.arg_names(node)
       sibling = node.parent.children[node.sibling_index + 1]
       arg_names = ARG_NAMES_MATCHER.match(sibling)
@@ -54,7 +56,7 @@ module Sorbet
       arg_names ||= PRIVATE_CLASS_ARG_MATCHER.match(sibling)
       arg_names
     end
-
+  
     def self.convert(src)
       if CONST_PATTERN.match(src)
         return map_const(CONST_PATTERN.match(src))
@@ -84,6 +86,9 @@ module Sorbet
       if NIL_PATTERN.match(src)
         return nil
       end
+      if SELF_PATTERN.match(src)
+        return "T.self_type"
+      end
       if CONST_PAIR_MATCHER.match(src)
         first, second = CONST_PAIR_MATCHER.match(src)
         return format("%s, %s", first, second)
@@ -92,20 +97,24 @@ module Sorbet
         hash_vals = hash_entries(src).map { |match| "#{match[0]}: #{convert(match[1])}" }.join(", ")
         return format("{%s}", hash_vals)
       end
+      if TUPLE_PATTERN.match(src)
+        values = TUPLE_PATTERN.match(src)
+        return format("[%s]", values.map { |value| convert(value) }.join(", "))
+      end
       # Know we (at least) cannot handle literals
       raise AutoCorrectError.new("Could not recognize source #{src}")
     end
-
+  
     # Given a hash node, return a list of key,value
     def self.hash_entries(hash)
       HASH_PATTERN.match(hash).map { |part| PAIR_MATCHER.match(part) }
     end
-
+  
     def self.map_consts(consts)
       ret = consts.map(&:to_s).join("::")
       map_const(ret)
     end
-
+  
     # Map Contract classes to the Sorbet equivalent
     def self.map_const(contracts_value)
       case contracts_value.to_s
@@ -114,18 +123,18 @@ module Sorbet
       when "Any", "Contracts::Any"
         return "T.untyped"
       when "Hash"
-        return "T::Hash"
+        return "T::Hash[T.untyped, T.untyped]"
       when "Proc"
         return "T.proc.void"
-      when "Num", "Contracts::Num"
+      when "Num", "Contracts::Num", "Neg", "Contracts::Neg", "Pos", "Contracts::Pos"
         return "Numeric"
-      when "Int", "Contracts::Int"
+      when "Int", "Contracts::Int", "Nat", "Contracts::Nat", "NatPos", "Contracts::NatPos"
         return "Integer"
       else
         contracts_value.to_s
       end
     end
-
+  
     # Map Contract functions and generic classes to the Sorbet equivalent
     def self.map_send(contracts_value)
       case contracts_value
@@ -137,10 +146,10 @@ module Sorbet
         return "T::Hash[%s]"
       when "Or", "Contracts::Or"
         return "T.any(%s)"
-      when "KeywordArgs"
+      when "KeywordArgs", "Contracts::KeywordArgs"
         # KeywordArgs is handled specifically
         return "KeywordArgs"
-      when "Optional"
+      when "Optional", "Contracts::Optional"
         return "%s"
       when "SetOf"
         return "T::Set[%s]"
@@ -153,4 +162,3 @@ module Sorbet
     end
   end
 end
-# rubocop:enable Style/FormatStringToken, Performance/RegexpMatch
