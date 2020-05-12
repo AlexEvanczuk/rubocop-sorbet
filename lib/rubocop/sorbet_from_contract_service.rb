@@ -37,7 +37,7 @@ module Sorbet
     def self.format_source(arg_types, arg_names, return_types)
       if arg_names.empty?
         if return_types.nil?
-          format("sig { void }", [])
+          format("sig { returns(NilClass) }", [])
         else
           format("sig { returns(%s) }", return_types)
         end
